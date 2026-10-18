@@ -1,0 +1,26 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sign in | BlueBio</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css"></head><body class="auth">
+<section class="auth-hero"><div class="brand"><span class="logo">B</span><h1>BlueBio</h1></div>
+<div class="pitch"><h2>Understand the sea off Maharashtra.</h2>
+<p>Temperature, salinity, chlorophyll, oxygen and fish records for six coastal districts, mapped, analysed and explained in one place.</p>
+<ul><li>Real data from Copernicus Marine, OBIS and GBIF</li><li>Machine-learning anomaly detection</li><li>Interactive maps, charts and PDF reports</li></ul></div><div class="wave"></div></section>
+<section class="auth-side"><div class="auth-card"><h3 id="title">Welcome back</h3><p class="sub" id="sub">Sign in to open the dashboard.</p>
+<div class="tabs"><button id="tin" class="on" type="button">Sign in</button><button id="tup" type="button">Create account</button></div>
+<form id="f"><label id="lname" hidden>Full name<input id="name" autocomplete="name"></label>
+<label>Email<input id="email" type="email" autocomplete="email" required></label>
+<label>Password<input id="pw" type="password" autocomplete="current-password" minlength="8" required></label>
+<p id="err" role="alert"></p><button class="btn full" id="go">Sign in</button></form></div></section>
+<script>
+let up=false;const $=s=>document.querySelector(s);
+function mode(u){up=u;$('#tin').classList.toggle('on',!u);$('#tup').classList.toggle('on',u);$('#lname').hidden=!u;$('#err').textContent='';
+ $('#go').textContent=u?'Create account':'Sign in';$('#title').textContent=u?'Create your account':'Welcome back';
+ $('#sub').textContent=u?'Use at least 8 characters for your password.':'Sign in to open the dashboard.';$('#pw').autocomplete=u?'new-password':'current-password'}
+$('#tin').onclick=()=>mode(false);$('#tup').onclick=()=>mode(true);
+$('#f').onsubmit=async e=>{e.preventDefault();$('#go').disabled=true;$('#err').textContent='';
+ try{const r=await fetch('/api/auth/'+(up?'register':'login'),{method:'POST',headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({name:$('#name').value,email:$('#email').value,password:$('#pw').value})});const d=await r.json();
+  if(r.ok)location.href='/';else $('#err').textContent=d.error||'Something went wrong.'}
+ catch{$('#err').textContent='Cannot reach the server.'}$('#go').disabled=false};
+</script></body></html>

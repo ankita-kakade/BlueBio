@@ -1,0 +1,31 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BlueBio | Maharashtra Coastal Marine Platform</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css"></head><body>
+<header class="top"><div class="brand"><span class="logo">B</span><div><h1>BlueBio</h1><p>Maharashtra coastal marine platform</p></div></div>
+<div class="actions"><span class="chip"><i class="dot"></i><span id="user">…</span></span><button id="report" class="btn">Download report (PDF)</button><button id="logout" class="btn ghost">Sign out</button></div></header>
+<section class="hero"><h2>Arabian Sea · Maharashtra coast</h2><p>Explore ocean conditions and fish records across six coastal districts, from Palghar to Sindhudurg.</p><div class="wave"></div></section>
+<main>
+<aside class="panel"><h2>Explore</h2>
+<label for="region">Coastal district</label><select id="region"></select>
+<label>Ocean parameter</label><div id="params" class="pills"></div>
+<label for="month">Month: <b id="mlabel"></b></label><input type="range" id="month" min="0" value="0">
+<p class="hint">Click a marker on the map to switch district. Pulsing rings mark anomalies for the chosen month.</p>
+<div class="legend"><span id="lmin"></span><i></i><span id="lmax"></span></div></aside>
+<section class="content">
+<div id="map"></div>
+<div id="kpis" class="kpis"></div>
+<div class="grid"><div class="card wide"><h3 id="t1"></h3><canvas id="c1"></canvas></div>
+<div class="card"><h3>Most recorded fish species (all years)</h3><canvas id="c2"></canvas></div>
+<div class="card"><h3>Fish records per month</h3><canvas id="c3"></canvas></div></div>
+<div class="grid"><div class="card wide"><h3>Detected anomalies</h3><div class="scroll"><table id="atable"></table></div></div>
+<div class="card wide"><h3>Insights</h3><ul id="ins"></ul></div></div>
+</section></main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script src="app.js"></script></body></html>

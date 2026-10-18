@@ -1,0 +1,18 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment: {POSTGRES_USER: bluebio, POSTGRES_PASSWORD: bluebio, POSTGRES_DB: bluebio}
+    volumes: ["./db/init.sql:/docker-entrypoint-initdb.d/init.sql", "pgdata:/var/lib/postgresql/data"]
+    healthcheck: {test: ["CMD-SHELL","pg_isready -U bluebio"], interval: 5s, retries: 10}
+  ml:
+    build: ./ml
+    env_file: .env
+    environment: {DATABASE_URL: "postgresql://bluebio:bluebio@db:5432/bluebio"}
+    depends_on: {db: {condition: service_healthy}}
+    ports: ["8000:8000"]
+  api:
+    build: ./api
+    environment: {DATABASE_URL: "postgresql://bluebio:bluebio@db:5432/bluebio", ML_URL: "http://ml:8000"}
+    depends_on: {db: {condition: service_healthy}}
+    ports: ["3000:3000"]
+volumes: {pgdata: {}}

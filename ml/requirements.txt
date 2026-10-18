@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+requests
+pandas
+numpy
+scikit-learn
+psycopg2-binary
+xarray
+copernicusmarine>=1.3
