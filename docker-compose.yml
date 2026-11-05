@@ -1,6 +1,8 @@
 services:
   db:
     image: postgis/postgis:16-3.4
+    ports: 
+      - "5432:5432"
     environment: {POSTGRES_USER: bluebio, POSTGRES_PASSWORD: bluebio, POSTGRES_DB: bluebio}
     volumes: ["./db/init.sql:/docker-entrypoint-initdb.d/init.sql", "pgdata:/var/lib/postgresql/data"]
     healthcheck: {test: ["CMD-SHELL","pg_isready -U bluebio"], interval: 5s, retries: 10}

@@ -442,354 +442,6 @@ async function generatePDF() {
 }
 
 
-/* async function generatePDF() {
-    const button = $('#report');
-
-    if (!button || !meta) {
-        alert('The dashboard is not ready. Please refresh and try again.');
-        return;
-    }
-
-    const originalText = button.textContent;
-    let report = null;
-
-    try {
-        setReportButtonBusy(button, true, originalText);
-
-        await ensurePdfLibraries();
-
-        const selectedRegion =
-            meta.regions.find(region => region.id === S.region)?.name || S.region;
-
-        const selectedParameter = meta.params[S.param]?.label || S.param;
-        const selectedMonth = meta.months[S.m];
-
-        const regionData = cache[S.region] ||
-            await api('/api/region/' + encodeURIComponent(S.region));
-
-        cache[S.region] = regionData;
-
-        report = document.createElement('section');
-        report.id = 'bluebio-pdf-report';
-
-        report.style.cssText = [
-            'display:block',
-            'position:absolute',
-            'left:0',
-            'top:0',
-            'width:190mm',
-            'padding:10mm',
-            'margin:0',
-            'box-sizing:border-box',
-            'background:#ffffff',
-            'color:#183746',
-            'font-family:Arial,sans-serif',
-            'font-size:11px',
-            'line-height:1.5',
-            'visibility:visible',
-            'opacity:1',
-            'z-index:99999'
-        ].join(';');
-
-        const heading = (number, title) => `
-            <h2 style="
-                color:#083344;
-                font-size:17px;
-                margin:22px 0 10px;
-                padding-bottom:6px;
-                border-bottom:1px solid #d6e5e9;
-            ">${number}. ${title}</h2>
-        `;
-
-        report.innerHTML = `
-            <header style="
-                border-bottom:3px solid #0e7490;
-                padding-bottom:14px;
-                margin-bottom:20px;
-            ">
-                <div style="
-                    color:#0e7490;
-                    font-size:11px;
-                    font-weight:bold;
-                    letter-spacing:2px;
-                ">MARINE RESEARCH PLATFORM</div>
-
-                <h1 style="
-                    font-size:30px;
-                    color:#083344;
-                    margin:8px 0;
-                ">BlueBio</h1>
-
-                <h2 style="font-size:18px;margin:0">
-                    Marine Data Analysis Report
-                </h2>
-
-                <p style="color:#607985;margin-bottom:0">
-                    Maharashtra Coastal Region
-                </p>
-            </header>
-
-            <table style="
-                width:100%;
-                border-collapse:collapse;
-                margin-bottom:20px;
-            ">
-                <tbody>
-                    <tr>
-                        <td style="padding:10px;background:#eef7f9">
-                            <b>Selected Region</b><br>
-                            ${selectedRegion}
-                        </td>
-                        <td style="padding:10px;background:#eef7f9">
-                            <b>Ocean Parameter</b><br>
-                            ${selectedParameter}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="padding:10px">
-                            <b>Selected Month</b><br>
-                            ${selectedMonth}
-                        </td>
-                        <td style="padding:10px">
-                            <b>Report Generated</b><br>
-                            ${new Date().toLocaleDateString()}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
-            ${heading(1, 'Oceanographic Summary')}
-            <div id="pdf-kpis"></div>
-
-            ${heading(2, 'Geographic Distribution')}
-            <div id="pdf-map"></div>
-
-            ${heading(3, 'Ocean Trends and Fish Observations')}
-            <div id="pdf-charts"></div>
-
-            ${heading(4, 'Anomaly Analysis')}
-            <div id="pdf-anomalies"></div>
-
-            ${heading(5, 'Research Insights')}
-            <div id="pdf-insights"></div>
-
-            <footer style="
-                border-top:1px solid #d6e5e9;
-                padding-top:10px;
-                margin-top:24px;
-                color:#607985;
-                font-size:9px;
-            ">
-                BlueBio | Integrated Marine Research Platform<br>
-                This report summarizes the data currently available in the
-                application. Interpretations depend on the coverage and quality
-                of the underlying observations.
-            </footer>
-        `;
-
-        document.body.appendChild(report);
-
-        const reportKpis = report.querySelector('#pdf-kpis');
-        const kpiGrid = document.createElement('div');
-
-        kpiGrid.style.cssText =
-            'display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;';
-
-        for (const [key, parameter] of Object.entries(meta.params)) {
-            const value = regionData?.env?.[key]?.[S.m];
-            const isAnomaly = (regionData?.anomalies || []).some(
-                anomaly => anomaly.param === key &&
-                    Number(anomaly.i) === S.m
-            );
-
-            const card = document.createElement('div');
-
-            card.style.cssText = `
-                padding:10px;
-                border:1px solid #d6e5e9;
-                border-radius:5px;
-                background:#f5fafb;
-                break-inside:avoid;
-            `;
-
-            const label = document.createElement('div');
-            label.textContent = parameter.label;
-            label.style.cssText = 'color:#607985;margin-bottom:5px;';
-
-            const number = document.createElement('div');
-            number.textContent = fv(value);
-            number.style.cssText =
-                'font-size:20px;font-weight:bold;color:#083344;';
-
-            const unit = document.createElement('div');
-            unit.textContent =
-                `${parameter.unit || ''}${isAnomaly ? ' · anomaly' : ''}`;
-
-            card.append(label, number, unit);
-            kpiGrid.appendChild(card);
-        }
-
-        const fishCount = getFishCount(regionData);
-        const fishCard = document.createElement('div');
-
-        fishCard.style.cssText = `
-            padding:10px;
-            border:1px solid #d6e5e9;
-            border-radius:5px;
-            background:#f5fafb;
-            break-inside:avoid;
-        `;
-
-        fishCard.innerHTML = `
-            <div style="color:#607985;margin-bottom:5px">Fish records</div>
-            <div style="font-size:20px;font-weight:bold;color:#083344">
-                ${fishCount === null ? 'Unavailable' : fishCount.toLocaleString()}
-            </div>
-            <div>Records reported for this district by the API</div>
-        `;
-
-        kpiGrid.appendChild(fishCard);
-        reportKpis.appendChild(kpiGrid);
-
-        await new Promise(resolve => requestAnimationFrame(resolve));
-
-        try {
-            const mapElement = $('#map');
-
-            if (mapElement && typeof window.html2canvas === 'function') {
-                const mapCanvas = await window.html2canvas(mapElement, {
-                    scale: 1.5,
-                    useCORS: true,
-                    backgroundColor: '#ffffff',
-                    logging: false
-                });
-
-                const mapImage = document.createElement('img');
-                mapImage.alt = 'BlueBio geographic distribution map';
-                mapImage.src = mapCanvas.toDataURL('image/png');
-
-                mapImage.style.cssText =
-                    'display:block;width:100%;height:auto;max-height:250px;object-fit:contain;';
-
-                report.querySelector('#pdf-map').appendChild(mapImage);
-            } else {
-                report.querySelector('#pdf-map').textContent =
-                    'Map preview unavailable.';
-            }
-        } catch (error) {
-            console.warn('Map capture failed:', error);
-
-            report.querySelector('#pdf-map').textContent =
-                'The map could not be captured. Refer to the interactive dashboard.';
-        }
-
-        const chartTitles = [
-            'Ocean Parameter Trend',
-            'Fish Species Records',
-            'Monthly Fish Observations'
-        ];
-
-        ['#c1', '#c2', '#c3'].forEach((selector, index) => {
-            const canvas = $(selector);
-
-            if (!canvas) return;
-
-            try {
-                const title = document.createElement('h3');
-                title.textContent = chartTitles[index];
-                title.style.cssText =
-                    'font-size:13px;color:#315b6b;margin:16px 0 6px;';
-
-                const image = document.createElement('img');
-                image.alt = chartTitles[index];
-                image.src = canvas.toDataURL('image/png');
-
-                image.style.cssText =
-                    'display:block;width:100%;height:auto;max-height:220px;object-fit:contain;';
-
-                report.querySelector('#pdf-charts').append(title, image);
-            } catch (error) {
-                console.warn(`Could not capture chart ${selector}:`, error);
-            }
-        });
-
-        const table = $('#atable');
-
-        if (table) {
-            const tableClone = table.cloneNode(true);
-
-            tableClone.style.cssText =
-                'width:100%;border-collapse:collapse;font-size:10px;';
-
-            tableClone.querySelectorAll('th,td').forEach(cell => {
-                cell.style.cssText +=
-                    'padding:7px;border:1px solid #d6e5e9;text-align:left;';
-            });
-
-            tableClone.querySelectorAll('th').forEach(cell => {
-                cell.style.backgroundColor = '#eaf4f6';
-            });
-
-            report.querySelector('#pdf-anomalies').appendChild(tableClone);
-        }
-
-        const insights = $('#ins');
-
-        if (insights) {
-            const insightsClone = insights.cloneNode(true);
-            insightsClone.style.cssText =
-                'padding-left:20px;line-height:1.8;';
-
-            report.querySelector('#pdf-insights').appendChild(insightsClone);
-        }
-
-        await new Promise(resolve => requestAnimationFrame(resolve));
-
-        if (!report.textContent.trim()) {
-            throw new Error('The report contains no text to export.');
-        }
-
-        await window.html2pdf().set({
-            margin: [8, 10, 10, 10],
-            filename: 'BlueBio_Marine_Research_Report.pdf',
-            image: {
-                type: 'jpeg',
-                quality: 0.98
-            },
-            html2canvas: {
-                scale: 2,
-                useCORS: true,
-                backgroundColor: '#ffffff',
-                logging: true,
-                scrollX: 0,
-                scrollY: 0
-            },
-            jsPDF: {
-                unit: 'mm',
-                format: 'a4',
-                orientation: 'portrait'
-            },
-            pagebreak: {
-                mode: ['css', 'legacy'],
-                avoid: ['table', 'img']
-            }
-        }).from(report).save();
-
-    } catch (error) {
-        console.error('PDF generation failed:', error);
-
-        alert(
-            'PDF generation failed. Open F12 > Console and check the error.'
-        );
-    } finally {
-        if (report) {
-            report.remove();
-        }
-
-        setReportButtonBusy(button, false, originalText);
-    }
-} */
-
 async function init() {
     const logoutButton = $('#logout');
 
@@ -1025,6 +677,7 @@ async function refresh() {
             anomaly => anomaly.param === S.param
         );
 
+
         const makeChart = (selector, type, chartData, options = {}) => {
             const canvas = $(selector);
 
@@ -1051,6 +704,7 @@ async function refresh() {
             `${parameter.label} (${parameter.unit}) · ${meta.regions.find(region => region.id === S.region)?.name || S.region}`;
 
         const parameterValues = data.env[S.param] || [];
+
 
         makeChart('#c1', 'line', {
             labels: meta.months,
@@ -1100,7 +754,7 @@ async function refresh() {
             indexAxis: 'y'
         });
 
-        makeChart('#c3', 'line', {
+       /* makeChart('#c3', 'line', {
             labels: meta.months,
             datasets: [{
                 label: 'Fish observations',
@@ -1109,7 +763,22 @@ async function refresh() {
                 tension: 0.3,
                 pointRadius: 0
             }]
-        });
+        });  */
+
+
+        const selectedMonth = meta.months[S.m];
+const selectedFishCount = data.catch.total?.[S.m] ?? 0;
+
+makeChart('#c3', 'bar', {
+    labels: [selectedMonth],
+    datasets: [{
+        label: 'Fish records',
+        data: [selectedFishCount],
+        backgroundColor: '#117a91',
+        borderColor: '#083344',
+        borderWidth: 1
+    }]
+});
 
         $('#atable').innerHTML =
             '<tr><th>Month</th><th>Parameter</th><th>Observed</th><th>Expected</th><th>Severity</th></tr>' +
